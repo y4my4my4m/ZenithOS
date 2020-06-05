@@ -1,4 +1,4 @@
-<a href="https://discord.gg/S6GZfRb"><img alt="Discord" src="https://img.shields.io/discord/661062825027829770?style=flat-square"></a>
+<a href="https://discord.gg/kkNuhNn"><img alt="Discord" src="https://img.shields.io/discord/661062825027829770?style=flat-square"></a>
 ![Website](https://img.shields.io/website?down_color=lightgray&down_message=offline&style=flat-square&up_color=green&up_message=online&url=http%3A%2F%2Fzenithos.org)
 ![goto counter](https://img.shields.io/github/search/VoidNV/ZenithOS/goto?style=flat-square)
 # ZenithOS
@@ -25,7 +25,7 @@ This basically a read-only repository. Everything happens inside the OS, as inte
 
 ## Background
 
-In around November of 2019, I decided I wanted to continue Terry's work in a direction that would make it a viable operating system while still keeping the innovative and, frankly, divine-intellect ideas and design strategies intact.
+In around November of 2019, I decided I wanted to continue Terry's work in a direction that would make it a viable operating system while still keeping the innovative and frankly, divine-intellect ideas and design strategies intact.
 
 At first, I was developing exclusively inside a VM and occasionally generating ISOs as official releases. This was not a good approach, as things broke and I had no way of telling which changes caused what. So I decided to scrap that and restart from scratch.\
 Releases of the "old" Zenith are currently archived on the `mega.nz` website:
