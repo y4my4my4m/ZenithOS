@@ -2859,9 +2859,22 @@ class CPrdtEntry
 		data_byte_count; //bit 31 is "Interrupt on Completion". bits 21:0 are the actual count.
 };
 
-class CHBACmdHeader
-{
-	U16	desc,	//$LK,"AHCI_CH_DESCf_W",A="MN:AHCI_CH_DESCf_W"$ 1=write 0=read  ATAPI too too TODO
+/*
+Bits of first U32:
+	4:0 - Command FIS Length, in U32s
+	  5 - ATAPI bit (A) for ATAPI command
+	  6 - Write bit (W) for write commands $LK,"AHCI_CH_DESCf_W",A="MN:AHCI_CH_DESCf_W"$ 1=write 0=read
+	  7 - Prefetchable (P)
+	  8 - Reset (R)
+	  9 - Built-in Self Test (BIST)
+	 10 - Clear busy upon R_OK
+	 11 - Reserved
+  15:12 - Port Multiplier Port (PMP)
+  31:16 - Physical Region Descriptor Table Length (PRDTL)
+*/
+class CPortCmdHeader
+{//What the CAHCIPort.cmd_list consists of.
+	U16	desc,
 		prdt_len;
 	U32	prd_byte_count,
 		cmd_table_base,
@@ -2869,7 +2882,7 @@ class CHBACmdHeader
 		reserved[4];
 };
 
-class CHBACmdTable
+class CPortCmdTable
 {
 	U8	cmd_fis[64],
 		acmd[16],

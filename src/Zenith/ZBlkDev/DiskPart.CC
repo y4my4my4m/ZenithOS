@@ -1,7 +1,7 @@
 #help_index "Install;File/Cmd Line (Typically);Cmd Line (Typically)"
 
-#define ROUND_DRIVE_TO	(63 * 255)
-#define DRIVE_HEADER	63
+#define ROUND_DRIVE_TO	(64 * 256)
+#define DRIVE_HEADER	64
 
 class CPlannedDrive
 {

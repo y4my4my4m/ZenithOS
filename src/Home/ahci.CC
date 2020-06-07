@@ -28,8 +28,8 @@ U0 AHCIPortCmdStop(CAHCIPort *port)
 {//Stop command engine on port.
 	Btr(&port->command, AHCI_PxCMDf_ST);
 	Btr(&port->command, AHCI_PxCMDf_FRE);
-//	while (port->command & (AHCI_PxCMDF_CR | AHCI_PxCMDF_FR));
-	while (Bt(&port->command, AHCI_PxCMDf_CR) || Bt(&port->command, AHCI_PxCMDf_FR));
+	while (port->command & (AHCI_PxCMDF_CR | AHCI_PxCMDF_FR));
+//	while (Bt(&port->command, AHCI_PxCMDf_CR) || Bt(&port->command, AHCI_PxCMDf_FR));
 }
 
 U0 AHCIPortCmdStart(CAHCIPort *port)
@@ -68,8 +68,8 @@ U0 AHCIPortReset(CAHCIPort *port)
 
 U0 AHCIPortIdentify(CBlkDev *bd)
 {
-	CHBACmdHeader *cmd_header;
-	CHBACmdTable  *cmd_table;
+	CPortCmdHeader *cmd_header;
+	CPortCmdTable  *cmd_table;
 	CFisH2D		  *cmd_fis;
 	U16			  *dev_id_record;
 	CAHCIPort 	  *port = bd->ahci_port;
@@ -94,7 +94,7 @@ U0 AHCIPortIdentify(CBlkDev *bd)
 	Btr(&cmd_header->desc, AHCI_CH_DESCf_W); //Disable 'write' bit.
 
 	cmd_table = *&cmd_header->cmd_table_base(I64 *); //Read full 64-bit cmd_table_base value.
-	MemSet(cmd_table, 0, sizeof(CHBACmdTable));
+	MemSet(cmd_table, 0, sizeof(CPortCmdTable));
 	cmd_table->prdt[0].data_base	   = dev_id_record;
 	cmd_table->prdt[0].data_base_upper = 0;
 	cmd_table->prdt[0].data_byte_count = 512 - 1;
@@ -125,14 +125,14 @@ U0 AHCIPortIdentify(CBlkDev *bd)
 
 		if (Bt(&port->interrupt_status, AHCI_PxIf_TFE)) //tfe = task file error
 		{
-oof:
+error:
 			ZenithErr("AHCI: Port %d: Identify command failed!\n", bd->port_num);
 			throw('AHCI');
 		}
 	}
 
 	if (Bt(&port->interrupt_status, AHCI_PxIf_TFE)) //Second safety check
-		goto oof;
+		goto error;
 
 	bd->max_blk = AHCILBA48CapacityGet(dev_id_record);
 	"%X\n", bd->max_blk;
@@ -142,30 +142,87 @@ oof:
 
 U8 *AHCIBufferFix(CBlkDev *bd, U8 *user_buf, I64 buf_size, Bool write)
 {
-	if (!blkdev.ahci64)
-	{
-		if (user_buf + buf_size < U32_MAX)
-		{	
-			"user_buf is less than U32_MAX\n";
-			return user_buf;
-		}
-		"Using internal buffer\n";
-		Bts(&bd->flags, BDf_INTERNAL_BUF);
-		Free(bd->prd_buf);
-		bd->prd_buf = MAlloc(buf_size, Fs->code_heap);
-		"Internal buffer: 0x%X\n", bd->prd_buf;
-		if (write)
-			MemCopy(bd->prd_buf, user_buf, buf_size);
-		return bd->prd_buf;
+	if (blkdev.ahci64)
+	{//if ahci64 no need for buffers in 32-bit address space.
+		Btr(&bd->flags, BDf_INTERNAL_BUF);
+		return user_buf;
 	}
-	Btr(&bd->flags, BDf_INTERNAL_BUF);
-	return user_buf;
+
+	if (user_buf + buf_size < U32_MAX)
+	{	
+		"user_buf is less than U32_MAX\n";
+		return user_buf;
+	}
+
+	"Using internal buffer\n";
+	Bts(&bd->flags, BDf_INTERNAL_BUF);
+	Free(bd->prd_buf);
+	bd->prd_buf = MAlloc(buf_size, Fs->code_heap);
+	"Internal buffer: 0x%X\n", bd->prd_buf;
+	if (write)
+		MemCopy(bd->prd_buf, user_buf, buf_size);
+	return bd->prd_buf;
+}
+
+U0 AHCIAtaBlksRW(CBlkDev *bd, U8 *buf, I64 blk, I64 count, Bool write)
+{
+	CPortCmdHeader *cmd_header;
+	CPortCmdTable  *cmd_table;
+	CFisH2D		  *cmd_fis;
+	CAHCIPort	  *port = bd->ahci_port;
+	I64			   buf_size, buf_size2, prdt_len, i, cmd_slot = AHCIPortCmdSlotGet(port);
+	U8 *internal_buf;
+
+	if (cmd_slot < 0)
+	{
+		ZenithErr("AHCI: No empty command slots in port!\n");
+		throw('AHCI');
+	}
+
+	if (count > AHCI_PRDT_MAX_BLOCKS)
+	{//As there will be wrappers for reading and writing which will handle block sizes greater than MAX_BLOCKS this is an extra step of safety.
+		ZenithErr("AHCI: Blk count %d exceeds max allowed in one command (%d)", count, AHCI_PRDT_MAX_BLOCKS);
+		throw('AHCI');
+	}
+
+	//Obtain command header and zero it.
+	cmd_header = port->cmd_list_base_upper << 32 | port->cmd_list_base;
+	cmd_header += cmd_slot; //Move up pointer to the slot we have in the command list.
+	MemSet(cmd_header, 0, sizeof(CPortCmdHeader));
+
+	//Write Command FIS Length (CFL, a fixed size) in bits 4:0 of the desc. Takes size in U32s.
+	cmd_header->desc = (cmd_header->desc & ~0x1F) + sizeof(CFisH2D) / sizeof(U32);
+	//Set 'Write' depending on 'write' parameter.
+	BEqual(cmd_header->desc, AHCI_CH_DESCf_W, write);
+
+	//Obtain command table and zero it.
+	cmd_table = cmd_header->cmd_table_base_upper << 32 | cmd_header->cmd_table_base;
+	MemSet(cmd_table, 0, sizeof(CPortCmdTable));
+
+	//Determine buffer size and PRDT length.
+	buf_size = buf_size2 = count * BLK_SIZE;
+	prdt_len = (buf_size - 1) >> AHCI_PRDT_BYTES_BITS + 1;
+
+	if (prdt_len > AHCI_PRDT_MAX_LEN)
+	{//TODO: Remove? This is probably never going to happen because we check the count beforehand.
+		ZenithWarn("AHCI: Required PRDT length exceeds max of %d", AHCI_PRDT_MAX_LEN);
+		prdt_len = AHCI_PRDT_MAX_LEN;
+		buf_size = prdt_len * AHCI_PRDT_BYTES;
+	}
+	"PRDT Length: %d\n", prdt_len;
+	"Buffer size: %d\n", buf_size;
+	cmd_header->prdt_len = prdt_len;
+
+	internal_buf = AHCIBufferFix(bd, buf, buf_size, write);
+	"Buffer: %d\n", internal_buf;
+
+	if (!buf) throw ('AHCI'); //Will probably never happen.
 }
 
 U0 AHCIAtaBlksRW(CBlkDev *bd, U8 *_buf, I64 blk, I64 count, Bool write)
 {
-	CHBACmdHeader *cmd_header;
-	CHBACmdTable  *cmd_table;
+	CPortCmdHeader *cmd_header;
+	CPortCmdTable  *cmd_table;
 	CFisH2D		  *cmd_fis;
 	CAHCIPort	  *port = bd->ahci_port;
 	I64			   buf_size, prdt_len, byte_count, _byte_count, i, slot = AHCIPortCmdSlotGet(port);
@@ -185,7 +242,7 @@ U0 AHCIAtaBlksRW(CBlkDev *bd, U8 *_buf, I64 blk, I64 count, Bool write)
 
 	cmd_header = *&port->cmd_list_base(I64 *);
 	cmd_header += slot; //Move up pointer to the slot we have in the command list
-	MemSet(cmd_header, 0, sizeof(CHBACmdHeader));
+	MemSet(cmd_header, 0, sizeof(CPortCmdHeader));
 
 	//setting Command FIS length, bits 4:0, takes size in U32s.
 	cmd_header->desc = (cmd_header->desc & ~0x1F) + sizeof(CFisH2D) / sizeof(U32);
@@ -193,7 +250,7 @@ U0 AHCIAtaBlksRW(CBlkDev *bd, U8 *_buf, I64 blk, I64 count, Bool write)
 	BEqual(&cmd_header->desc, AHCI_CH_DESCf_W, write);
 
 	cmd_table = *&cmd_header->cmd_table_base(I64 *);
-	MemSet(cmd_table, 0, sizeof(CHBACmdTable));
+	MemSet(cmd_table, 0, sizeof(CPortCmdTable));
 
 	//determine buf_size and prdt_len
 	buf_size = count * BLK_SIZE;
@@ -252,7 +309,7 @@ U0 AHCIAtaBlksRW(CBlkDev *bd, U8 *_buf, I64 blk, I64 count, Bool write)
 	cmd_fis->lba3 = blk.u8[3];
 	cmd_fis->lba4 = blk.u8[4];
 	cmd_fis->lba5 = blk.u8[5];
-	cmd_fis->count = byte_count >> BLK_SIZE_BITS;
+	cmd_fis->count = _byte_count >> BLK_SIZE_BITS;
 
 	if (!AHCIPortWait(port, tS + 2))
 	{//2 second timeout for last command to complete.
@@ -282,13 +339,13 @@ oof:
 		if (bd->flags & BDF_INTERNAL_BUF)
 		{
 			"Writeback internal buffer\n";
-			MemCopy(buf, _buf, buf_size);
+			MemCopy(_buf, buf, buf_size);
 		}
 }
-
+*/
 U0 AHCIPortInit(CBlkDev *bd, CAHCIPort *port, I64 port_num)
 {
-	CHBACmdHeader *cmd_header;
+	CPortCmdHeader *cmd_header;
 	I64 i, addr = 0;
 
 	bd->ahci_port = port;
@@ -305,7 +362,7 @@ U0 AHCIPortInit(CBlkDev *bd, CAHCIPort *port, I64 port_num)
 	if (blkdev.ahci64)
 	{
 		//'1K-byte' align as per SATA spec.
-		addr = CAllocAligned(sizeof(CHBACmdHeader) * blkdev.cmd_slot_count, 1024);
+		addr = CAllocAligned(sizeof(CPortCmdHeader) * blkdev.cmd_slot_count, 1024);
 		port->cmd_list_base		  = addr.u32[0];
 		port->cmd_list_base_upper = addr.u32[1];
 
@@ -316,7 +373,7 @@ U0 AHCIPortInit(CBlkDev *bd, CAHCIPort *port, I64 port_num)
 	}
 	else
 	{//Code Heap is always under 4 GB in address space, so we can use that instead.
-		port->cmd_list_base		  = CAllocAligned(sizeof(CHBACmdHeader) * blkdev.cmd_slot_count, 1024, Fs->code_heap);
+		port->cmd_list_base		  = CAllocAligned(sizeof(CPortCmdHeader) * blkdev.cmd_slot_count, 1024, Fs->code_heap);
 		port->cmd_list_base_upper = 0;
 
 		port->fis_base		 = CAllocAligned(sizeof(CFisReceived), 256, Fs->code_heap);
@@ -325,19 +382,19 @@ U0 AHCIPortInit(CBlkDev *bd, CAHCIPort *port, I64 port_num)
 
 	for (i = 0; i < blkdev.cmd_slot_count; i++)
 	{
-		cmd_header = &port->cmd_list_base(CHBACmdHeader *)[i];
+		cmd_header = &port->cmd_list_base(CPortCmdHeader *)[i];
 		cmd_header->prdt_len = 8; //TODO: reason
 
 		if (blkdev.ahci64)
 		{
 			//'128-byte' align as per SATA spec, minus 1 since length is 1-based.
-			addr = CAllocAligned(sizeof(CHBACmdTable) + sizeof(CPrdtEntry) * (cmd_header->prdt_len - 1), 128);
+			addr = CAllocAligned(sizeof(CPortCmdTable) + sizeof(CPrdtEntry) * (cmd_header->prdt_len - 1), 128);
 			cmd_header->cmd_table_base		 = addr.u32[0];
 			cmd_header->cmd_table_base_upper = addr.u32[1];
 		}
 		else
 		{
-			cmd_header->cmd_table_base		 = CAllocAligned(sizeof(CHBACmdTable) + sizeof(CPrdtEntry) * 
+			cmd_header->cmd_table_base		 = CAllocAligned(sizeof(CPortCmdTable) + sizeof(CPrdtEntry) * 
 																(cmd_header->prdt_len - 1), 128, Fs->code_heap);
 			cmd_header->cmd_table_base_upper = 0;
 
@@ -406,20 +463,20 @@ U0 AHCIInit()
 }
 
 AHCIInit;
-#define BLKS 6145
+#define BLKS 30000
 
 U0 Test()
 {
 	U8 *buf = MAlloc(BLKS * BLK_SIZE, Fs->code_heap);
 	U8 *buf2 = MAlloc(BLKS * BLK_SIZE);
 
-	MemSet(buf, 0xFF, BLKS * BLK_SIZE);
+	MemSet(buf, 0xF3, BLKS * BLK_SIZE);
 
 	CBlkDev *bd = CAlloc(sizeof(CBlkDev));
 	bd->ahci_port = &blkdev.ahci_hba->ports[0];
 
-	AHCIAtaBlksRW(bd, buf, 0, BLKS, TRUE);
-	AHCIAtaBlksRW(bd, buf2, 0, BLKS, FALSE);
+	AHCIAtaBlksRW(bd, buf,  0, BLKS, TRUE); //write
+	AHCIAtaBlksRW(bd, buf2, 0, BLKS, FALSE);//read
 
 	D(buf2 + (BLKS - 5) * BLK_SIZE, 5 * BLK_SIZE);
 }
