@@ -2714,10 +2714,9 @@ public class CATARep
 #define AHCI_MAX_PORTS			32
 
 //Physical Region Descriptor Table
-#define AHCI_PRDT_MAX_LEN		32
-#define AHCI_PRDT_BYTES_BITS	22
-#define AHCI_PRDT_BYTES			(1 << AHCI_PRDT_BYTES_BITS)
-#define AHCI_PRDT_MAX_BLOCKS	(U16_MAX + 1)
+#define AHCI_PRD_MAX_BYTES		(4 * 1024 * 1024) //Max bytes that can go in one PRD entry ($ER$4 MiB). Section 4.2.3.3 Fig. 17 (DBC) 
+#define AHCI_PRDT_MAX_BLOCKS	(U16_MAX + 1) 	  //Max blocks you can transfer in one command. 
+#define AHCI_PRDT_MAX_LEN		8 				  //Max PRD entries in one command. This is equal to (MAX_BLOCKS * BLK_SIZE) ö MAX_BYTES.
 
 //Global Host Control (Controller) flags
 #define AHCI_GHCf_HBA_RESET			0
