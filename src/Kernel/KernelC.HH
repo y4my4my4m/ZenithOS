@@ -637,6 +637,10 @@ public extern CJob *JobQueue(I64 (*fp_addr)(U8 *data),U8 *data=NULL,
 #help_index "Real Mode"
 public _extern _REALMODEINT U0 RealModeInt(U8 int, CRMRegs *regs_in, CRMRegs *regs_out); //Drop to real mode to perform a BIOS call.
 
+public extern U0 RealModeBRewind(U64 size);
+public extern U8 *RealModeBAllocAligned(U64 size, U64 alignment);
+public extern U8 *RealModeBAlloc(U64 size);
+
 #help_index "PCI"
 public extern I64 PCIClassFind(I64 class_code,I64 n);
 public extern U16 PCIReadU16(I64 bus,I64 dev,I64 fun,I64 rg);

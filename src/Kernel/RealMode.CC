@@ -4,6 +4,10 @@ _REALMODEINT::
 		PUSH RBP
 		MOV RBP, RSP
 
+@@04:	// Acquire function lock
+		LOCK BTS [@@100], 0
+		JC @@04
+
 		PUSH RAX
 		PUSH RBX
 		PUSH RCX
@@ -19,9 +23,7 @@ _REALMODEINT::
 		PUSH R14
 		PUSH R15
 
-		MOV R12,RBP
-		MOV RDX, RBP
-
+		MOV U64 [@@50], RSP	// Save stack pointer and base ptr
 		MOV U64 [@@55], RBP
 
 		MOV AL, U8 SF_ARG1[RBP] // Interrupt number
@@ -34,11 +36,14 @@ _REALMODEINT::
 
 		CLI
 
+		MOV_RAX_CR3
+		MOV U64 [@@56], RAX
+
 		IN AL, 0x21
-		MOV U8 [&@@80], AL
+		MOV U8 [@@80], AL
 
 		IN AL, 0xA1
-		MOV U8 [&@@90], AL
+		MOV U8 [@@90], AL
 
 		MOV AL, 0x11
 		OUT 0x20, AL
@@ -77,8 +82,6 @@ _REALMODEINT::
 		SIDT U64 [@@20]
 
 		LIDT U64 [@@30]		// Switch to Real Mode IVT
-
-		MOV U64 [@@50], RSP	// Save stack pointer
 
 		DU8  0xFF,0x2C,0x25;	// jmp dword far m32
 		DU32 @@40;
@@ -134,15 +137,8 @@ _REALMODEINT::
 
 		PUSH AX
 		MOV AL, 0xFF
-		OUT 0x21, AL
 		OUT 0xA1, AL
-
-		XOR AL, AL
-		MOV CX, 0x1000
-@@06:
-		OUT 0x80, AL
-		LOOP @@06
-
+		OUT 0x21, AL
 		POP AX
 
 		CLI
@@ -160,6 +156,9 @@ _REALMODEINT::
 		PUSHFD
 
 		LGDT U32 [@@10]
+
+		MOV EAX, U32 [@@56]
+		MOV_CR3_EAX
 
 		MOV ECX, 0xC0000080
 		RDMSR
@@ -185,6 +184,7 @@ _REALMODEINT::
 		MOV SS, AX
 
 		MOV RSP, U64 [@@50]
+		MOV RBP, U64 [@@55]
 
 		LIDT U64 [@@20]
 
@@ -221,8 +221,6 @@ _REALMODEINT::
 		MOV AL, U8 [@@90]
 		OUT 0xA1, AL
 
-		MOV RBP, U64 [@@55]
-
 		STI
 
 		// Save register state to out_regs from @@70
@@ -246,24 +244,29 @@ _REALMODEINT::
 		POP RBX
 		POP RAX
 
+		LOCK BTR [@@100], 0
+
 		POP RBP
 
 		RET1 24
 
 
+ALIGN 8,OC_NOP
+
 @@10:	DU64 0,0;
 
 @@20:	DU64 0,0;
 
-@@30:	DU16 0x3FF;
+@@30:	DU16 0x3FF,0,0,0;
 		DU64 0;
 
 @@40:	DU32 @@01;
-		DU16 0x80;
+		DU16 0x80,0;
 
 @@50:	DU64 0;
-
 @@55:	DU64 0;
+
+@@56:	DU64 0;
 
 @@60:	DU32 0;
 @@61:	DU32 0;
@@ -271,11 +274,38 @@ _REALMODEINT::
 @@65:	DU32 0;
 @@66:	DU32 0;
 
+@@70:	DU32 0,0,0,0,0,0,0,0;
+
+@@100:	DU64 0;
+
 @@80:	DU8  0;
 @@90:	DU8  0;
-
-@@70:	DU32 0,0,0,0,0,0,0,0;
 
 };
 
 _extern _REALMODEINT U0 RealModeInt(U8 int, CRMRegs *regs_in, CRMRegs *regs_out); //Drop to real mode to perform a BIOS call.
+
+U64 RealModeBAllocPtr = 0x500;
+
+U0 RealModeBRewind(U64 size) {
+	RealModeBAllocPtr -= size;
+}
+
+U8 *RealModeBAllocAligned(U64 size, U64 alignment) {
+	U64 NewBase = RealModeBAllocPtr;
+	if (NewBase & (alignment - 1)) {
+		NewBase &= ~(alignment - 1);
+		NewBase += alignment;
+	}
+
+	U8 *ret = NewBase(U8*);
+	NewBase += size;
+
+	RealModeBAllocPtr = NewBase;
+	return ret;
+}
+
+U8 *RealModeBAlloc(U64 size) {
+	return RealModeBAllocAligned(size, 4);
+}
+
