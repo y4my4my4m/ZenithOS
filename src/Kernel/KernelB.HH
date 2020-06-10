@@ -59,18 +59,12 @@ public _intern IC_IN_U8 U8 InU8(I64 port); //Read U8 from I/O port.
 public _intern IC_OUT_U16 U0 OutU16(I64 port, I64 val); //Write U16 to I/O port.
 public _intern IC_OUT_U32 U0 OutU32(I64 port, I64 val); //Write U32 to I/O port.
 public _intern IC_OUT_U8	U0 OutU8(I64 port, I64 val); //Write U8 to I/O port.
-public _extern _REP_IN_U16 U0 RepInU16(
-				U8 *buf,I64 count,I64 port); //Repeated read U16 from I/O port.
-public _extern _REP_IN_U32 U0 RepInU32(
-				U8 *buf,I64 count,I64 port); //Repeated read U32 from I/O port.
-public _extern _REP_IN_U8  U0 RepInU8(
-				U8 *buf,I64 count,I64 port); //Repeated read U8 from I/O port.
-public _extern _REP_OUT_U16 U0 RepOutU16(
-				U8 *buf,I64 count,I64 port); //Repeated write U16 to I/O port.
-public _extern _REP_OUT_U32 U0 RepOutU32(
-				U8 *buf,I64 count,I64 port); //Repeated write U32 to I/O port.
-public _extern _REP_OUT_U8	U0 RepOutU8(
-				U8 *buf,I64 count,I64 port); //Repeated write U8 to I/O port.
+public _extern _REP_IN_U16 U0 RepInU16(U8 *buf,I64 count,I64 port); //Repeated read U16 from I/O port.
+public _extern _REP_IN_U32 U0 RepInU32(U8 *buf,I64 count,I64 port); //Repeated read U32 from I/O port.
+public _extern _REP_IN_U8  U0 RepInU8(U8 *buf,I64 count,I64 port); //Repeated read U8 from I/O port.
+public _extern _REP_OUT_U16 U0 RepOutU16(U8 *buf,I64 count,I64 port); //Repeated write U16 to I/O port.
+public _extern _REP_OUT_U32 U0 RepOutU32(U8 *buf,I64 count,I64 port); //Repeated write U32 to I/O port.
+public _extern _REP_OUT_U8	U0 RepOutU8(U8 *buf,I64 count,I64 port); //Repeated write U8 to I/O port.
 
 #help_index "Math"
 public _intern IC_ATAN F64 ATan(F64 d); //Arc Tan (Inverse Tan).

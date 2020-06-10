@@ -634,6 +634,9 @@ public extern CJob *JobQueue(I64 (*fp_addr)(U8 *data),U8 *data=NULL,
 				I64 target_cpu=1,I64 flags=1<<JOBf_FREE_ON_COMPLETE,
 				I64 job_code=JOBT_CALL,U8 *aux_str=NULL,I64 aux1=0,I64 aux2=0);
 
+#help_index "Real Mode"
+public _extern _REALMODEINT U0 RealModeInt(U8 int, CRMRegs *regs_in, CRMRegs *regs_out); //Drop to real mode to perform a BIOS call.
+
 #help_index "PCI"
 public extern I64 PCIClassFind(I64 class_code,I64 n);
 public extern U16 PCIReadU16(I64 bus,I64 dev,I64 fun,I64 rg);

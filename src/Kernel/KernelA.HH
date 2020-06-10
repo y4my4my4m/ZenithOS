@@ -405,6 +405,8 @@ class CGDT
 			  cs64_ring3, //$LK,"Ring3",A="FI:::/Demo/Lectures/Ring3.CC"$, in case you want to play around.
 			  ds,
 			  ds_ring3,
+			  cs16,
+			  ds16,
 			  tr[MP_PROCESSORS_NUM],
 			  tr_ring3[MP_PROCESSORS_NUM];
 };
@@ -4056,6 +4058,19 @@ public class CCPU //The Gs segment reg points to current CCPU.
 	CTSS	*tss;
 	I64 	start_stack[16];
 #assert !($$&7)
+};
+
+#help_index "Real Mode"
+class CRMRegs
+{
+	U32 eflags,
+		ebp,
+		edi,
+		esi,
+		edx,
+		ecx,
+		ebx,
+		eax;	
 };
 
 #help_index "Memory/Page Tables"
