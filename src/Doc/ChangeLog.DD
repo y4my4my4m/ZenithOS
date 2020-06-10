@@ -1,5 +1,6 @@
 $WW,1$$FG,5$$TX+CX,"ChangeLog"$$FG$
 $IV,1$----06/09/20 19:20:21----$IV,0$
+* Added experimental $LK,"VidResChange",A="MN:VidResChange"$() as temporary way to change resolutions without having to recompile kernel. Quirks present.
 * Added $LK,"RealModeInt",A="MN:RealModeInt"$() to do be able to do real mode BIOS calls from 64-bit mode.
 
 $IV,1$----06/04/20 18:01:46----$IV,0$
@@ -48,10 +49,8 @@ $IV,1$----04/02/20 03:27:03----$IV,0$
 $IV,1$----04/02/20 01:50:52----$IV,0$
 * 'Fixed' $LK,"Varoom",A="FF:::/Demo/Games/Varoom.CC,kbd.down_bitmap"$ window lock up on exit. Brute-forcing zero, but somewhere $LK,"mp_not_done_flags",A="FF:::/Demo/Games/Varoom.CC,mp_not_done_flags"$ isn't getting cleared when shift-esc is entered with the new key implementation.
 
-$IV,1$----04/01/20 01:49:47----$IV,0$
-* Made the boats in $LK,"Talons",A="FI:::/Demo/Games/Talons.CC"$ brown instead of black.
-
 $IV,1$----04/01/20 01:42:55----$IV,0$
+* Made the boats in $LK,"Talons",A="FI:::/Demo/Games/Talons.CC"$ brown instead of black.
 * Cleaned up $LK,"Varoom",A="FF:::/Demo/Games/Varoom.CC,kbd.down_bitmap"$ control fix some. Bug remains: run from Menu, ESC out, ESC again; a window locks up.
   Added set/unset task idle between Yield to lower CPU use.
 

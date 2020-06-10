@@ -542,10 +542,10 @@ class CVBEMode
 
 class CVBEModeShort
 {
-	U16 	width,
-				height,
-				mode_num;
-	U32 	max_pixel_clock; //TODO refresh rates.
+	U16 width,
+		height,
+		mode_num;
+	U32 max_pixel_clock; //TODO refresh rates.
 };
 
 #help_index "Boot"
