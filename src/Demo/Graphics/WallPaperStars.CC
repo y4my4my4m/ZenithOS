@@ -45,7 +45,7 @@ U0 WallInit()
 
 	if (Fs != zenith_task)
 	{
-		"\Must be Zenith Included. (SHIFT-F5 / RightClick->Zenith Include) \n";
+		"\nMust be Zenith Included. (SHIFT-F5 / RightClick->Zenith Include) \n";
 		return;
 	}
 	old_wall_paper=gr.fp_wall_paper;
