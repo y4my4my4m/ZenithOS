@@ -171,6 +171,7 @@ public U0 PaletteSetTom(Bool persistent=TRUE)
 	LFBFlush;
 	if (persistent)
 		fp_set_std_palette = &PaletteSetTom;
+	//*(drv_text_attr(U8 *) + 1) = BROWN;
 }
 //********************************************************************************
 public CBGR24 gr_palette_tom_light[COLORS_NUM]= {
