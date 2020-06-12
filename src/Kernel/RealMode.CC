@@ -284,28 +284,4 @@ ALIGN 8,OC_NOP
 };
 
 _extern _REALMODEINT U0 RealModeInt(U8 int, CRMRegs *regs_in, CRMRegs *regs_out); //Drop to real mode to perform a BIOS call.
-
-U64 RealModeBAllocPtr = 0x500;
-
-U0 RealModeBRewind(U64 size) {
-	RealModeBAllocPtr -= size;
-}
-
-U8 *RealModeBAllocAligned(U64 size, U64 alignment) {
-	U64 NewBase = RealModeBAllocPtr;
-	if (NewBase & (alignment - 1)) {
-		NewBase &= ~(alignment - 1);
-		NewBase += alignment;
-	}
-
-	U8 *ret = NewBase(U8*);
-	NewBase += size;
-
-	RealModeBAllocPtr = NewBase;
-	return ret;
-}
-
-U8 *RealModeBAlloc(U64 size) {
-	return RealModeBAllocAligned(size, 4);
-}
 

@@ -16,7 +16,6 @@
 #include "KStart64"
 #include "KMathA"
 #include "KUtils"
-#include "RealMode"
 #exe {Option(OPTf_KEEP_PRIVATE,ON);};
 #include "/Compiler/CompilerA.HH"
 #exe {Option(OPTf_EXTERNS_TO_IMPORTS,ON);};
@@ -28,6 +27,7 @@
 #include "StrA"
 #include "KGlobals"
 #include "KMathB"
+#include "RealMode"
 #include "Sched"
 #include "Memory/MakeMemory"
 #include "FontStd"

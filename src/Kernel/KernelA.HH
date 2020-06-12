@@ -3419,7 +3419,7 @@ public class CFile //See $LK,"::/Demo/Disk/DataBase.CC"$.
 };
 
 #help_index "Memory/Heap"
-#define _CONFIG_HEAP_DEBUG FALSE
+ #define _CONFIG_HEAP_DEBUG FALSE
 
 #if _CONFIG_HEAP_DEBUG
 class CMemUnused
@@ -3466,9 +3466,9 @@ class CMemBlk
 	U32 	mb_signature,pags;
 };
 
-#define MRT_UNUSED			0
-#define MRT_RAM 				1
-#define MRT_DEV 				2
+#define MRT_UNUSED	0
+#define MRT_RAM 	1
+#define MRT_DEV 	2
 
 class CMemRange
 {
@@ -3478,23 +3478,23 @@ class CMemRange
 	I64 	size;
 };
 
-#define MEM_PAG_BITS						9
-#define MEM_PAG_SIZE						(1<<MEM_PAG_BITS)
-#define MEM_HEAP_HASH_SIZE			1024
+#define MEM_PAG_BITS			9
+#define MEM_PAG_SIZE			(1<<MEM_PAG_BITS)
+#define MEM_HEAP_HASH_SIZE		1024
 #define MEM_FREE_PAG_HASH_SIZE	0x100
 //It is common to $LK,"MAlloc",A="MN:MAlloc"$() exact powers of two.	There is some overhead.
 //We add 2 pags, so a request is not rounded-up to next power of two.
-#define MEM_EXTRA_HASH2_PAGS		2
+#define MEM_EXTRA_HASH2_PAGS	2
 
-#define MEM_ZENITH_STACK				(MEM_PAG_SIZE*512) //Like 16384*MEM_PAG_SIZE
-#define MEM_DAEMON_STACK				(MEM_PAG_SIZE*512)
-#define MEM_INTERRUPT_STACK 		(MEM_PAG_SIZE*512)
-#define MEM_DEFAULT_STACK 			(MEM_PAG_SIZE*512)
+#define MEM_ZENITH_STACK		(MEM_PAG_SIZE*512) //Like 16384*MEM_PAG_SIZE
+#define MEM_DAEMON_STACK		(MEM_PAG_SIZE*512)
+#define MEM_INTERRUPT_STACK		(MEM_PAG_SIZE*512)
+#define MEM_DEFAULT_STACK 		(MEM_PAG_SIZE*512)
 
-#define TASK_HASH_TABLE_SIZE		(1<<10)
+#define TASK_HASH_TABLE_SIZE	(1<<10)
 
 //locked flags
-#define BPlf_LOCKED 						0
+#define BPlf_LOCKED	0
 public class CBlkPool
 {
 	I64 	locked_flags,alloced_u8s,used_u8s;
@@ -3506,7 +3506,7 @@ public class CBlkPool
 
 #help_index "Memory/HeapCtrl"
 //locked flags
-#define HClf_LOCKED 						0
+#define HClf_LOCKED	0
 
 #define HEAP_CTRL_SIGNATURE_VAL 'HcSV'
 public class CHeapCtrl
@@ -3522,13 +3522,17 @@ public class CHeapCtrl
 	CMemUnused *heap_hash[MEM_HEAP_HASH_SIZE/sizeof(U8 *)];
 };
 
+#help_index "Memory/Bump Allocator"
+#define BALLOC_INIT_BASE	0x500
+
 #help_index "Devices;Memory/Page Tables"
 public class CDevGlobals
 {
 	CIDTEntry *idt;
-	U8		*mem64_ptr;
-	U8		*uncached_alias; //Alias of lowest 4Gig.
-	U8		mp_apic_ids[MP_PROCESSORS_NUM];
+	U8		*mem64_ptr,
+			*balloc_ptr,  //Bump Alloc Pointer. See $LK,"BAlloc",A="MN:BAlloc"$
+			*uncached_alias, //Alias of lowest 4Gig.
+			mp_apic_ids[MP_PROCESSORS_NUM];
 	CMemRange mem32_head;
 	CPCIDev pci_head;
 };
@@ -3602,10 +3606,10 @@ public I64 class CBGR48
 };
 
 #help_index "Keyboard Devices;Char/Input;StdIn"
-#define KBD_PORT				0x60
-#define KBD_CTRL				0x64
+#define KBD_PORT		0x60
+#define KBD_CTRL		0x64
 
-#define KBDC_LED				0xED
+#define KBDC_LED		0xED
 #define KBDC_DISABLE_MS 0xA7
 #define KBDC_ENABLE_MS	0xA8
 #define KBDC_ENABLE_KBD 0xAE

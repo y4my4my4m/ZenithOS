@@ -417,28 +417,26 @@ U8 *MAllocIdent(U8 *src,CTask *mem_task=NULL)
 
 U8 *ZMAllocIdent(U8 *src)
 {//Alloc in Zenith's heap, ident copy of heap node.
-	return MAllocIdent(src,zenith_task);
+	return MAllocIdent(src, zenith_task);
 }
 
-U8 *MAllocAligned(I64 size,I64 alignment,
-				CTask *mem_task=NULL,I64 misalignment=0)
+U8 *MAllocAligned(I64 size, I64 alignment, CTask *mem_task=NULL, I64 misalignment=0)
 {//Only powers of two alignment. This is awful.
-	I64 mask=alignment-1;
-	U8 *ptr=MAlloc(size+mask+sizeof(I64)+misalignment,mem_task),
-				*res=(ptr+sizeof(I64)+mask)&~mask+misalignment;
-	res(I64 *)[-1]=ptr-res;
-#assert offset(CMemUsed.size)==offset(CMemUsed.start)-sizeof(I64)
+	I64 mask = alignment-1;
+	U8 *ptr = MAlloc(size+mask+sizeof(I64)+misalignment,mem_task),
+	   *res = (ptr + sizeof(I64) + mask) & ~mask + misalignment;
+	res(I64 *)[-1] = ptr-res;
+#assert offset(CMemUsed.size) == offset(CMemUsed.start) - sizeof(I64)
 	return res;
 }
 
-U8 *CAllocAligned(I64 size,I64 alignment,
-				CTask *mem_task=NULL,I64 misalignment=0)
+U8 *CAllocAligned(I64 size, I64 alignment, CTask *mem_task=NULL, I64 misalignment=0)
 {//Only powers of two alignment. This is awful.
-	I64 mask=alignment-1;
-	U8 *ptr=MAlloc(size+mask+sizeof(I64)+misalignment,mem_task),
-				*res=(ptr+sizeof(I64)+mask)&~mask+misalignment;
-	res(I64 *)[-1]=ptr-res;
-#assert offset(CMemUsed.size)==offset(CMemUsed.start)-sizeof(I64)
+	I64 mask = alignment - 1;
+	U8 *ptr = MAlloc(size+mask+sizeof(I64)+misalignment,mem_task),
+	   *res = (ptr + sizeof(I64) + mask) & ~mask + misalignment;
+	res(I64 *)[-1] = ptr - res;
+#assert offset(CMemUsed.size) == offset(CMemUsed.start) - sizeof(I64)
 	MemSet(res,0,size);
 	return res;
 }
@@ -454,7 +452,6 @@ U8 *ReAlloc(U8 *ptr, U64 new_size, CTask *mem_task=NULL)
 		Free(ptr); //we can free NULL
 		return NULL;
 	}
-
 	res = MAlloc(new_size, mem_task);
 	if(!ptr)
 		return res;
@@ -467,6 +464,29 @@ U8 *ReAlloc(U8 *ptr, U64 new_size, CTask *mem_task=NULL)
 U8 *ZReAlloc(U8 *ptr, I64 new_size)
 {//Realloc in Zenith's heap.
 	return ReAlloc(ptr, new_size, zenith_task);
+}
+
+U8 *BAlloc(U64 size, U64 alignment=4)
+{//Bump Alloc mem in low 1 MiB. For use with BIOS calls done with $LK,"RealModeInt",A="MN:RealModeInt"$(). Only powers of two alignment.
+//$LK,"::/Doc/BumpAlloc.DD",A="FI:::/Doc/BumpAlloc.DD"$
+	U8 *res;
+	U64 new_base = dev.balloc_ptr;
+
+	if (new_base & (alignment - 1))
+	{
+		new_base &= ~(alignment - 1);
+		new_base += alignment;
+	}
+	res = new_base;
+	new_base += size;
+	dev.balloc_ptr = new_base;
+
+	return res;
+}
+
+U0 BFree(U64 size)
+{//Free size amount of memory obtained from $LK,"BAlloc",A="MN:BAlloc"$ -- FIFO style. $BK$No out-of-order freeing!$BK,0$
+	dev.balloc_ptr -= size;
 }
 
 U8 *StrNew(U8 *buf,CTask *mem_task=NULL)

@@ -56,8 +56,9 @@ U0 SysGlobalsInit()
 
 	QueueInit(&dev.pci_head);
 	dev.mem64_ptr=mem_mapped_space;
+	dev.balloc_ptr = BALLOC_INIT_BASE;
 
-	if(sys_boot_src.u8[0] != BOOT_SRC_RAM)
+	if(sys_boot_src.u16[0] != BOOT_SRC_RAM)
 	{//framebuffer pointer is already linear
 		Seg2Linear(&sys_vbe_info.video_modes);
 		Seg2Linear(&sys_vbe_info.oem);
@@ -86,10 +87,10 @@ U0 SysGrInit()
 
 	//patch some chars
 	text.aux_font[10] = text.font[10]; //"Return" symbol 
-	text.aux_font[255] = text.font[255]; //Block symbol ÿ
+	text.aux_font[255] = text.font[255]; //Block symbol ï¿½
 
-	text.border_chars[2] (I64)='ÄÍ³ºÚÉ¿»';
-	text.border_chars[10](U32)='ÀÈÙ¼';
+	text.border_chars[2] (I64)='ï¿½Í³ï¿½ï¿½É¿ï¿½';
+	text.border_chars[10](U32)='ï¿½ï¿½Ù¼';
 
 	text.cols = sys_vbe_mode.width / FONT_WIDTH;
 	text.rows = sys_vbe_mode.height / FONT_HEIGHT;

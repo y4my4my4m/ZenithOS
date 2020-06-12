@@ -571,6 +571,11 @@ public _extern _MHEAP_CTRL CHeapCtrl *MHeapCtrl(U8 *src);
 public _extern _MSIZE I64 MSize(U8 *src); 	//size of heap object
 public _extern _MSIZE2 I64 MSize2(U8 *src); //Internal size
 
+#help_index "Memory/Bump Allocator;Real Mode"
+#help_file "::/Doc/BumpAlloc.DD"
+public extern U8 *BAlloc(U64 size, U64 alignment=4);
+public extern U0 BFree(U64 size);
+
 #help_index "Memory/HeapCtrl"
 public extern U0 HeapCtrlDel(CHeapCtrl *hc);
 public extern CHeapCtrl *HeapCtrlInit(CHeapCtrl *hc=NULL, CTask *task=NULL,CBlkPool *bp);
@@ -591,10 +596,8 @@ public extern I64 MessageScan(I64 *_arg1=NULL,I64 *_arg2=NULL,
 				I64 mask=~1,CTask *task=NULL);
 
 #help_index "Misc"
-public extern U0 QuickSort(U8 *base,I64 num, I64 width,
-				I64 (*fp_compare)(U8 *e1,U8 *e2));
-public extern U0 QuickSortI64(I64 *base,I64 num,
-				I64 (*fp_compare)(I64 e1,I64 e2));
+public extern U0 QuickSort(U8 *base,I64 num, I64 width, I64 (*fp_compare)(U8 *e1,U8 *e2));
+public extern U0 QuickSortI64(I64 *base,I64 num, I64 (*fp_compare)(I64 e1,I64 e2));
 public extern F64 sys_os_version;
 
 #help_index "Misc/Progress Bars"
@@ -603,8 +606,7 @@ public extern U0 ProgressBarsReset(U8 *path=NULL);
 #help_index "Mouse"
 #help_file "::/Doc/Mouse"
 public extern U0 GridInit();
-public extern U0 MouseSet(I64 x=I64_MAX,I64 y=I64_MAX,I64 z=I64_MAX,
-				I64 l=I64_MAX,I64 r=I64_MAX);
+public extern U0 MouseSet(I64 x=I64_MAX,I64 y=I64_MAX,I64 z=I64_MAX, I64 l=I64_MAX,I64 r=I64_MAX);
 public extern CMouseStateGlobals mouse;
 public extern CGridGlobals mouse_grid;
 public extern CMouseHardStateGlobals mouse_hard;
@@ -635,11 +637,7 @@ public extern CJob *JobQueue(I64 (*fp_addr)(U8 *data),U8 *data=NULL,
 				I64 job_code=JOBT_CALL,U8 *aux_str=NULL,I64 aux1=0,I64 aux2=0);
 
 #help_index "Real Mode"
-public _extern _REALMODEINT U0 RealModeInt(U8 int, CRMRegs *regs_in, CRMRegs *regs_out); //Drop to real mode to perform a BIOS call.
-
-public extern U0 RealModeBRewind(U64 size);
-public extern U8 *RealModeBAllocAligned(U64 size, U64 alignment);
-public extern U8 *RealModeBAlloc(U64 size);
+public _extern _REALMODEINT U0 RealModeInt(U8 int, CRMRegs *regs_in, CRMRegs *regs_out);
 
 #help_index "PCI"
 public extern I64 PCIClassFind(I64 class_code,I64 n);
@@ -705,7 +703,7 @@ public extern I64 sys_num_spawned_tasks;
 extern CTask *sys_winmgr_task,*sys_task_being_screen_updated;
 
 #help_index "Task/Delay;Time/CPU Cycles"
-public extern U0 Busy(I64 æS); //Loosely timed
+public extern U0 Busy(I64 ï¿½S); //Loosely timed
 public extern U0 PortNop(); //On the order of 1uS
 extern I64 TimeCal();
 

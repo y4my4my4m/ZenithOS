@@ -7,4 +7,4 @@ $ID,-2$$ID,-2$$TR,"Once"$
 $ID,2$$TR,"Zenith"$
 $ID,2$$ID,-2$$TR,"User"$
 $ID,2$$ID,-2$$ID,-2$$TR,"AutoComplete"$
-$ID,2$ac.col=50;ac.row=16;$ID,-2$
+$ID,2$ac.col=98;ac.row=23;$ID,-2$
