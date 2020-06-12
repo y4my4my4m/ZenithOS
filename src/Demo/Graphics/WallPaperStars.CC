@@ -25,16 +25,16 @@ U0 WallPaperStars(CTask *task)
 	{
 		GrPlot(dc, wall_stars[i].x, wall_stars[i].y);
 
-		if (++wall_stars[i].x > GR_WIDTH)
+		if (++wall_stars[i].y > GR_HEIGHT)
 		{
-			wall_stars[i].x = 0;
-			wall_stars[i].y = RandU16 % GR_HEIGHT;
+			wall_stars[i].y = 0;
+			wall_stars[i].x = RandU16 % GR_WIDTH;
 		}
 	}
 
 	//Uncomment the following if you wish. Will draw the old wallpaper over this one.
 	//old_wall_paper(task);
-
+
 	task->text_attr = WHITE << 4 + WHITE;
 
 }
@@ -60,3 +60,4 @@ U0 WallInit()
 }
 
 WallInit;
+
