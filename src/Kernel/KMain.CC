@@ -87,10 +87,10 @@ U0 SysGrInit()
 
 	//patch some chars
 	text.aux_font[10] = text.font[10]; //"Return" symbol 
-	text.aux_font[255] = text.font[255]; //Block symbol ï¿½
+	text.aux_font['?' - 1] = text.font['?' - 1]; //Block symbol
 
-	text.border_chars[2] (I64)='ï¿½Í³ï¿½ï¿½É¿ï¿½';
-	text.border_chars[10](U32)='ï¿½ï¿½Ù¼';
+	text.border_chars[2] (I64)='ÄÍ³ºÚÉ¿»';
+	text.border_chars[10](U32)='ÀÈÙ¼';
 
 	text.cols = sys_vbe_mode.width / FONT_WIDTH;
 	text.rows = sys_vbe_mode.height / FONT_HEIGHT;
