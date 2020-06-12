@@ -1616,8 +1616,8 @@ class CWinMgrTimingGlobals
 	I64 	calc_idle_count;
 };
 
-#define WINMGR_FPS		(60000.0/1001)
-#define WINMGR_PERIOD 	(1001/60000.0)
+#define WINMGR_FPS		(144000.0/1001)
+#define WINMGR_PERIOD 	(1001/144000.0)
 
 public class CWinMgrGlobals
 {
@@ -3522,7 +3522,7 @@ public class CHeapCtrl
 	CMemUnused *heap_hash[MEM_HEAP_HASH_SIZE/sizeof(U8 *)];
 };
 
-#help_index "Memory/Bump Allocator"
+#help_index "Memory/Bump Allocator"
 #define BALLOC_INIT_BASE	0x500
 
 #help_index "Devices;Memory/Page Tables"

@@ -259,7 +259,7 @@ I64 WinMgrSleep(Bool flush_messages = FALSE)
 	if ((t_delta = (t = tS) - winmgr.last_refresh_tS) > 0.01)
 		winmgr.fps = Max(1.0 / t_delta, 1);
 	else
-		winmgr.fps = 99;
+		winmgr.fps = 144;
 	winmgr.last_refresh_tS = t;
 	WinCalcIdles;
 
@@ -291,7 +291,7 @@ I64 WinMgrSleep(Bool flush_messages = FALSE)
 			FifoI64Flush(kbd.scan_code_fifo);
 	}
 	if (sys_focus_task)
-		LBtr(&sys_focus_task->task_flags, TASKf_HAS_SONG);
+		LBtr(&sys_focus_task->task_flags, TASKf_HAS_SONG);
 	WinMouseUpdate;
 
 	if (!LBtr(&sys_semas[SEMA_JUST_PUMP_MESSAGES], 0))
