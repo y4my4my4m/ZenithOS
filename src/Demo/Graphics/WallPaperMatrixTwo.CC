@@ -3,75 +3,59 @@
 	routine to stay in mem even if this task is killed.
 */
 
-#define NUM_STARS	GR_WIDTH * GR_HEIGHT / 2160
-//#define NUM_STARS GR_WIDTH * GR_HEIGHT / 512
+#define AMOUNT_CHARS	GR_WIDTH * GR_HEIGHT / 2160
 // Derived from ratio for 600 for 1440x900
 
-class Star
+class Matrix
 {
-	U16 x, y, z;
-	U64 char;
+	U16 x, y;
+	U8 char;
 	Bool alt;
-} wall_stars[NUM_STARS];
+} wall_matrix[AMOUNT_CHARS];
 
 U0 (*old_wall_paper)(CTask *task);
 
-U0 WallPaperStars(CTask *task)
+U0 WallPaperMatrix(CTask *task)
 {
 	I64 i;
 	CDC *dc = DCAlias(gr.dc2, task);
 	
-	
-	F64 t0;
-	t0 = tS;
-	
-
-	for (i = 0; i < NUM_STARS; i++)
+	for (i = 0; i < AMOUNT_CHARS; i++)
 	{
-		//GrLine(dc, wall_stars[i].x, wall_stars[i].y, wall_stars[i].x, wall_stars[i].y + 10);
-		//dc->color = i >> 4;
 		
-		GrPrint(dc, wall_stars[i].x, wall_stars[i].y + (wall_stars[i].z * Rand), "%c", wall_stars[i].char);
-		
-
-		if(RandU16 < t0 * 100)
-		{	
-			++wall_stars[i].y;
-		}
-			
-		//++wall_stars[i].y;
-	
-		
-		if (RandU16 * 32 < RandU16)
+		if (RandU16 < RandU16 % 512)
 		{
-			wall_stars[i].char = RandU64;
-			wall_stars[i].alt = !wall_stars[i].alt;
+			wall_matrix[i].alt = !wall_matrix[i].alt;
 		}
 		
-		if (wall_stars[i].alt)
+		if (wall_matrix[i].alt)
 		{
-			dc->color = DKGRAY;
+			dc->color = LTGRAY;	
+			wall_matrix[i].char = wall_matrix[i+1].char;
 		}
 		else
 		{
-			dc->color = LTGRAY;
-		}	
-		
-
-		if (wall_stars[i].y > GR_HEIGHT)
-		{
-			wall_stars[i].y = 0;
-			wall_stars[i].x = RandU16 % GR_WIDTH;
+			dc->color = DKGRAY;
 		}
 		
-		//if (++wall_stars[i].x > GR_WIDTH){
 
-		//	wall_stars[i].y = RandU16 % GR_HEIGHT;
-		//	wall_stars[i].x = 0;
-		//}
+		if (wall_matrix[i].y > GR_HEIGHT)
+		{
+			wall_matrix[i].y = 0;
+			wall_matrix[i].x = RandU16 % GR_WIDTH;
+		}
 		
-		
-		GrPrint(dc, wall_stars[i].x, wall_stars[i].y + (wall_stars[i].z * Rand), "%c", wall_stars[i].char);
+		if (tS < tS)
+		{
+			++wall_matrix[i].y;
+
+			if(RandU16 < RandU16 * 0.5)
+			{
+				++wall_matrix[i].y;
+			}
+		}
+				
+		GrPrint(dc, wall_matrix[i].x, wall_matrix[i].y, "%c", wall_matrix[i].char);
 
 	}
 
@@ -94,15 +78,15 @@ U0 WallInit()
 	}
 	old_wall_paper=gr.fp_wall_paper;
 
-	for (i = 0; i < NUM_STARS; i++)
+	for (i = 0; i < AMOUNT_CHARS; i++)
 	{
-		wall_stars[i].x = RandU16 % GR_WIDTH ;
-		wall_stars[i].y = RandU16 % GR_HEIGHT;
-		wall_stars[i].z = Rand;
-		wall_stars[i].char = RandU64;
+		wall_matrix[i].x = RandU16 % GR_WIDTH ;
+		wall_matrix[i].y = RandU16 % GR_HEIGHT;
+		wall_matrix[i].char = RandU8;
+		wall_matrix[i].alt = FALSE;
 	}
 	
-	gr.fp_wall_paper = &WallPaperStars;
+	gr.fp_wall_paper = &WallPaperMatrix;
 }
 
 WallInit;
