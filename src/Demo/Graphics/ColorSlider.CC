@@ -126,14 +126,15 @@ U0 LeftClickSlider(CCtrl *c,I64 x,I64 y,Bool)
 	else if(x<c->left+2*SLIDER_SPACING+1+SLIDER_SPACING/3)
 			s->middle_pos=SLIDER_RANGE-1-(y-(c->top+SLIDER_SPACING));
 	else
-		s->right_pos=SLIDER_RANGE-1-(y-(c->top+SLIDER_SPACING));
+		s->right_pos=SLIDER_RANGE-1-(y-(c->top+SLIDER_SPACING));
 
 	if (c->update_derived_vals)
 		(*c->update_derived_vals)(c);
 
 	// set palette
-	gr_palette_temp[15] = s->preview*2;
-	PaletteSetTemp(FALSE);
+	gr_palette_temp[15] = s->preview*2;
+	PaletteSetTemp;
+	LFBFlush; //why is this used?
 }
 
 CCtrl *SliderNew()
@@ -165,7 +166,7 @@ U0 Main()
 	"This is to demo ctrls.\n";
 	CCtrl *c=SliderNew;
 	PressAKey;
-	"Left: %d  Right: %d\n",
+	"Left: %d Middle:%d Right: %d\n",
 				sld.left_pos*10/SLIDER_RANGE,
 				sld.middle_pos*10/SLIDER_RANGE,
 				sld.right_pos*10/SLIDER_RANGE;
