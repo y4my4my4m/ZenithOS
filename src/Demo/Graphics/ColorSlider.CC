@@ -16,7 +16,9 @@ class CSliderState
 	I64 middle_pos;
 	I64 right_pos;
 	CBGR24 color;
+	I64 preview;
 } sld;
+
 
 I0 DrawPixel(I64 x, I64 y, CBGR24 color)
 {
@@ -70,12 +72,24 @@ U0 DrawCtrlSlider(CDC *dc,CCtrl *c)
 				c->top+SLIDER_SPACING+SLIDER_RANGE-1-s->right_pos-1,5,3);
 
 	//color preview
-	I64 i, j;
+	//	I64 i, j;
 
-	for (i = 0; i < SLIDER_SPACING*4; i++)
-		for (j = 0; j < 40; j++)
-			DrawPixel(c->left +i, c->top + j, s->color);
+	//for (i = 0; i < SLIDER_SPACING*4; i++)
+	//	for (j = 0; j < 40; j++)
+	//		DrawPixel(c->left +i, c->top + j, s->color);
 
+}
+public CBGR24 gr_palette_temp[16] = {
+	0xFFFFFF, 0x3465A4, 0x4E9A06, 0x06989A, 0xA24444, 0x75507B, 0xCE982F, 0xBCC0B9,
+	0x555753, 0x729FCF, 0x82BC49, 0x34E2E2, 0xAC3535, 0xAD7FA8, 0xFCE94F, 0x000000
+};
+
+public U0 PaletteSetTemp(Bool persistent=TRUE)
+{//Activate temp palette.
+	GrPaletteSet(gr_palette_temp);
+	LFBFlush;
+	if (persistent)
+		fp_set_std_palette = &PaletteSetTemp;
 }
 
 U0 UpdateDerivedCtrlSlider(CCtrl *c)
@@ -93,8 +107,14 @@ U0 UpdateDerivedCtrlSlider(CCtrl *c)
 	I64 previewG = ClampI64(s->middle_pos,0,256);
 	I64 previewR = ClampI64(s->right_pos,0,256);
 
-	CBGR24 preview = previewB + previewG << 8 + previewR << 16;
-	s->color=preview*2;
+	s->preview = previewB + previewG << 8 + previewR << 16;
+	//s->color=s->preview*2;
+
+	//gr_palette_temp = GrPaletteGet;	
+	
+	//gr_palette_temp[2] = preview*2;
+	//PaletteSetTemp(FALSE);
+
 }
 
 U0 LeftClickSlider(CCtrl *c,I64 x,I64 y,Bool)
@@ -110,6 +130,10 @@ U0 LeftClickSlider(CCtrl *c,I64 x,I64 y,Bool)
 
 	if (c->update_derived_vals)
 		(*c->update_derived_vals)(c);
+
+	// set palette
+	gr_palette_temp[15] = s->preview*2;
+	PaletteSetTemp(FALSE);
 }
 
 CCtrl *SliderNew()
